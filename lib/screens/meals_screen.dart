@@ -3,6 +3,7 @@ import 'package:eatit/model/meal_model.dart';
 import 'package:flutter/material.dart';
 
 bool _today = false;
+String collection = "test-meals";
 
 class MealsScreen extends StatelessWidget {
   @override
@@ -17,12 +18,12 @@ class MealsScreen extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child: StreamBuilder(
-                stream:
-                    FirebaseFirestore.instance.collection("meals").snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection(collection)
+                    .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const Text("fail!");
 
-                  // List<Meal> meals = snapshot.data.documents.map((QueryDocumentSnapshot e) => Meal.fromCloud(e)).toList();
                   List<Meal> meals = List<Meal>();
                   snapshot.data.documents.forEach((e) {
                     meals.add(Meal.fromCloud(e));
@@ -57,8 +58,15 @@ class MealsScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete_outline),
+                          splashColor: Colors.red,
+                          splashRadius: 30.0,
+                          onPressed: () =>
+                              _showDeleteDialog(context, meals[index].id),
+                        ),
                         onLongPress: () => FirebaseFirestore.instance
-                            .collection("meals")
+                            .collection(collection)
                             .doc(meals[index].id)
                             .set({
                           "timestamp": Timestamp.now(),
@@ -80,6 +88,30 @@ class MealsScreen extends StatelessWidget {
         backgroundColor: Colors.redAccent,
       ),
     );
+  }
+
+  _showDeleteDialog(BuildContext context, String id) {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text("Are you sure?"),
+              content: Text("Willst du es wirklich löschen?"),
+              actions: <Widget>[
+                FlatButton(
+                    textColor: Theme.of(context).disabledColor,
+                    onPressed: () => Navigator.pop(context),
+                    child: Text("NEIN")),
+                FlatButton(
+                    onPressed: () => FirebaseFirestore.instance
+                        .collection(collection)
+                        .doc(id)
+                        .delete()
+                        .then((value) => Navigator.pop(context)),
+                    child: Text("JA"))
+              ]);
+        });
   }
 
   Future<void> _showDialog(BuildContext context) {
@@ -121,7 +153,7 @@ class MealsScreen extends StatelessWidget {
               child: Text("Approve"),
               onPressed: () {
                 if (_formKey.currentState.validate()) {
-                  FirebaseFirestore.instance.collection("meals").add({
+                  FirebaseFirestore.instance.collection(collection).add({
                     "name": _nameController.text,
                     "timestamp": (_today)
                         ? Timestamp.fromDate(DateTime.now())
