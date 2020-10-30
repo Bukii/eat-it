@@ -165,6 +165,7 @@ class MealsScreen extends StatelessWidget {
                 if (_formKey.currentState.validate()) {
                   FirebaseFirestore.instance.collection(collection).add({
                     "name": _nameController.text,
+                    "fav": false,
                     "timestamp": (_today)
                         ? Timestamp.fromDate(DateTime.now())
                         : Timestamp.fromDate(DateTime.utc(2000, 1, 1)),
