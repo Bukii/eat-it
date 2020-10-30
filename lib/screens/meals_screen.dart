@@ -40,10 +40,20 @@ class MealsScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       return ListTile(
                         contentPadding: EdgeInsets.only(
-                          left: 32,
-                          right: 32,
+                          left: 16,
+                          right: 16,
                           top: 4,
                         ),
+                        leading: IconButton(
+                            icon: (meals[index].fav) ? Icon(Icons.star) : Icon(Icons.star_border_rounded),
+                            color: (meals[index].fav) ? Colors.redAccent : Colors.grey,
+                            splashColor: Colors.redAccent[200],
+                            onPressed: () => FirebaseFirestore.instance
+                                    .collection(collection)
+                                    .doc(meals[index].id)
+                                    .set({
+                                  "fav": !meals[index].fav,
+                                }, SetOptions(merge: true))),
                         title: Text(
                           meals[index].title,
                           style: TextStyle(
